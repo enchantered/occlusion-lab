@@ -1,0 +1,213 @@
+"""Offline review core. Heuristic redaction is NOT comprehensive PII protection.
+
+A local hash chain detects many mutations, not an attacker who rewrites the
+entire database or rolls back both state and log to a consistent snapshot.
+"""
+from contextlib import contextmanager
+import hashlib
+import json
+import re
+import sqlite3
+import uuid
+from pathlib import Path
+
+MAX_TEXT_BYTES = 100 * 1024
+_PATTERNS = (
+    ("api_key", re.compile(r"\b(?:sk-[A-Za-z0-9_-]{16,}|(?:api[_-]?key|secret)[=: ]+[A-Za-z0-9_./+-]{12,})\b", re.I)),
+    ("bearer_token", re.compile(r"\bBearer\s+[A-Za-z0-9._~+/-]{12,}={0,2}", re.I)),
+    ("email", re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")),
+    ("phone", re.compile(r"(?<!\w)(?:\+?\d[\d .()\-]{7,}\d)(?!\w)")),
+)
+
+
+class ReviewError(ValueError):
+    """Expected review operation or input error."""
+
+
+def fingerprint(text: str) -> str:
+    """SHA-256 of the exact UTF-8 text, without normalization."""
+    if not isinstance(text, str):
+        raise ReviewError("text must be a string")
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _validate_text(value, label, *, allow_blank=False):
+    if not isinstance(value, str):
+        raise ReviewError(f"{label} must be a string")
+    if not allow_blank and not value.strip():
+        raise ReviewError(f"{label} must not be empty")
+    if len(value.encode("utf-8")) > MAX_TEXT_BYTES:
+        raise ReviewError(f"{label} exceeds the 100 KB limit")
+
+
+def redact(text: str) -> dict:
+    """Mask heuristic matches; findings contain offsets/types, never raw matches.
+
+    Names, addresses, account numbers and many secrets may remain. This is not
+    a security boundary. Spans refer to the original input.
+    """
+    _validate_text(text, "text", allow_blank=True)
+    matches = []
+    for kind, pattern in _PATTERNS:
+        matches.extend((m.start(), m.end(), kind) for m in pattern.finditer(text))
+    chosen = []
+    for item in sorted(matches, key=lambda x: (x[0], -(x[1] - x[0]))):
+        if chosen and item[0] < chosen[-1][1]:
+            continue
+        chosen.append(item)
+    output, findings, cursor = [], [], 0
+    for start, end, kind in chosen:
+        output.extend((text[cursor:start], f"[REDACTED:{kind.upper()}]"))
+        findings.append({"type": kind, "start": start, "end": end})
+        cursor = end
+    output.append(text[cursor:])
+    return {"text": "".join(output), "findings": findings}
+
+
+class ReviewStore:
+    """Durable plaintext SQLite drafts and a local tamper-evident event chain.
+
+    Reviewer names are assertions, not authenticated identities. Repeated
+    approval/rejection fails; repeated approved export is read-only and safe.
+    """
+    def __init__(self, db_path):
+        self.db_path = str(db_path)
+        if not self.db_path or self.db_path == ":memory:":
+            raise ReviewError("a persistent database file path is required")
+        Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
+        with self._connect() as db:
+            db.execute("CREATE TABLE IF NOT EXISTS drafts (id TEXT PRIMARY KEY, source_hash TEXT NOT NULL, draft TEXT NOT NULL, draft_hash TEXT NOT NULL, status TEXT NOT NULL, reviewer TEXT, reason TEXT)")
+            db.execute("CREATE TABLE IF NOT EXISTS audit (seq INTEGER PRIMARY KEY AUTOINCREMENT, prev_hash TEXT NOT NULL, event TEXT NOT NULL, event_hash TEXT NOT NULL)")
+
+    @contextmanager
+    def _connect(self):
+        db = sqlite3.connect(self.db_path, timeout=10)
+        db.row_factory = sqlite3.Row
+        try:
+            with db:
+                yield db
+        finally:
+            db.close()
+
+    @staticmethod
+    def _canonical(obj):
+        return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+    def _append(self, db, kind, data):
+        row = db.execute("SELECT seq,event_hash FROM audit ORDER BY seq DESC LIMIT 1").fetchone()
+        prev, seq = (row["event_hash"], row["seq"] + 1) if row else ("0" * 64, 1)
+        body = {"seq": seq, "prev_hash": prev, "type": kind, "data": data}
+        digest = fingerprint(self._canonical(body))
+        db.execute("INSERT INTO audit(seq,prev_hash,event,event_hash) VALUES(?,?,?,?)", (seq, prev, self._canonical(body), digest))
+
+    def _require_integrity(self, db):
+        if not self._verify_audit(db):
+            raise ReviewError("audit or draft integrity check failed")
+
+    def create_draft(self, source: str, draft: str) -> str:
+        _validate_text(source, "source")
+        _validate_text(draft, "draft")
+        draft_id = str(uuid.uuid4())
+        with self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            self._require_integrity(db)
+            db.execute("INSERT INTO drafts VALUES(?,?,?,?,?,?,?)", (draft_id, fingerprint(source), draft, fingerprint(draft), "pending", None, None))
+            self._append(db, "created", {"id": draft_id, "source_hash": fingerprint(source), "draft_hash": fingerprint(draft)})
+        return draft_id
+
+    def approve(self, draft_id: str, expected_hash: str, reviewer: str) -> None:
+        _validate_text(reviewer, "reviewer")
+        with self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            self._require_integrity(db)
+            row = db.execute("SELECT * FROM drafts WHERE id=?", (draft_id,)).fetchone()
+            if row is None:
+                raise ReviewError("draft not found")
+            if row["status"] != "pending":
+                raise ReviewError("only pending drafts can be approved")
+            actual = fingerprint(row["draft"])
+            if actual != row["draft_hash"] or expected_hash != actual:
+                raise ReviewError("draft hash mismatch")
+            db.execute("UPDATE drafts SET status='approved', reviewer=? WHERE id=?", (reviewer.strip(), draft_id))
+            self._append(db, "approved", {"id": draft_id, "hash": actual, "reviewer": reviewer.strip()})
+
+    def reject(self, draft_id: str, reason: str) -> None:
+        _validate_text(reason, "reason")
+        with self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            self._require_integrity(db)
+            row = db.execute("SELECT status FROM drafts WHERE id=?", (draft_id,)).fetchone()
+            if row is None:
+                raise ReviewError("draft not found")
+            if row["status"] != "pending":
+                raise ReviewError("only pending drafts can be rejected")
+            db.execute("UPDATE drafts SET status='rejected', reason=? WHERE id=?", (reason.strip(), draft_id))
+            self._append(db, "rejected", {"id": draft_id, "reason": reason.strip()})
+
+    def export_approved(self, draft_id: str) -> dict:
+        with self._connect() as db:
+            db.execute("BEGIN")
+            self._require_integrity(db)
+            row = db.execute("SELECT * FROM drafts WHERE id=?", (draft_id,)).fetchone()
+            if row is None:
+                raise ReviewError("draft not found")
+            if row["status"] != "approved":
+                raise ReviewError("draft is not approved")
+            return {"id": row["id"], "draft": row["draft"], "hash": row["draft_hash"], "reviewer": row["reviewer"]}
+
+    def _verify_audit(self, db) -> bool:
+        try:
+            events = db.execute("SELECT seq,prev_hash,event,event_hash FROM audit ORDER BY seq").fetchall()
+            drafts = {r["id"]: dict(r) for r in db.execute("SELECT * FROM drafts")}
+            replay, prev = {}, "0" * 64
+            for n, row in enumerate(events, 1):
+                if row["seq"] != n or row["prev_hash"] != prev:
+                    return False
+                body = json.loads(row["event"])
+                if not isinstance(body, dict) or set(body) != {"seq", "prev_hash", "type", "data"}:
+                    return False
+                if body["seq"] != n or body["prev_hash"] != prev:
+                    return False
+                digest = fingerprint(self._canonical(body))
+                if digest != row["event_hash"]:
+                    return False
+                data, kind = body["data"], body["type"]
+                if not isinstance(data, dict):
+                    return False
+                if kind == "created":
+                    if data["id"] in replay:
+                        return False
+                    replay[data["id"]] = {"source_hash": data["source_hash"], "draft_hash": data["draft_hash"], "status": "pending", "reviewer": None, "reason": None}
+                elif kind == "approved":
+                    state = replay.get(data["id"])
+                    if not state or state["status"] != "pending" or state["draft_hash"] != data["hash"] or not isinstance(data["reviewer"], str) or not data["reviewer"].strip():
+                        return False
+                    state.update(status="approved", reviewer=data["reviewer"])
+                elif kind == "rejected":
+                    state = replay.get(data["id"])
+                    if not state or state["status"] != "pending" or not isinstance(data["reason"], str) or not data["reason"].strip():
+                        return False
+                    state.update(status="rejected", reason=data["reason"])
+                else:
+                    return False
+                prev = digest
+            if set(replay) != set(drafts):
+                return False
+            for ident, expected in replay.items():
+                actual = drafts[ident]
+                if any(actual[field] != value for field, value in expected.items()):
+                    return False
+                if fingerprint(actual["draft"]) != actual["draft_hash"]:
+                    return False
+            return True
+        except (sqlite3.Error, ValueError, KeyError, TypeError, AttributeError):
+            return False
+
+    def verify_audit(self) -> bool:
+        """Verify chain and replayed state within one consistent read snapshot."""
+        try:
+            with self._connect() as db:
+                db.execute("BEGIN")
+                return self._verify_audit(db)
+        except sqlite3.Error:
+            return False
