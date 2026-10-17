@@ -144,6 +144,17 @@ class ReviewStore:
             db.execute("UPDATE drafts SET status='rejected', reason=? WHERE id=?", (reason.strip(), draft_id))
             self._append(db, "rejected", {"id": draft_id, "reason": reason.strip()})
 
+    def inspect_draft(self, draft_id: str) -> dict:
+        """Read local review text and status; this is not approved delivery/export."""
+        with self._connect() as db:
+            db.execute("BEGIN")
+            self._require_integrity(db)
+            row = db.execute("SELECT * FROM drafts WHERE id=?", (draft_id,)).fetchone()
+            if row is None:
+                raise ReviewError("draft not found")
+            return {"id": row["id"], "draft": row["draft"], "hash": row["draft_hash"],
+                    "status": row["status"], "reviewer": row["reviewer"], "reason": row["reason"]}
+
     def export_approved(self, draft_id: str) -> dict:
         with self._connect() as db:
             db.execute("BEGIN")

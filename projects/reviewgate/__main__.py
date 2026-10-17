@@ -12,6 +12,9 @@ def main(argv=None):
     demo = sub.add_parser("demo", help="load sample JSON as a pending draft only")
     demo.add_argument("sample"); demo.add_argument("--db", required=True)
     approve = sub.add_parser("approve"); approve.add_argument("id"); approve.add_argument("--hash", required=True); approve.add_argument("--reviewer", required=True); approve.add_argument("--db", required=True)
+    inspect = sub.add_parser("inspect", help="read local draft for human review, not approved delivery")
+    inspect.add_argument("id"); inspect.add_argument("--db", required=True)
+    reject = sub.add_parser("reject"); reject.add_argument("id"); reject.add_argument("--reason", required=True); reject.add_argument("--db", required=True)
     export = sub.add_parser("export"); export.add_argument("id"); export.add_argument("--db", required=True)
     audit = sub.add_parser("audit"); audit.add_argument("--db", required=True)
     redact_cmd = sub.add_parser("redact"); redact_cmd.add_argument("file")
@@ -30,6 +33,11 @@ def main(argv=None):
         elif args.command == "approve":
             ReviewStore(args.db).approve(args.id, args.hash, args.reviewer)
             print(json.dumps({"id": args.id, "status": "approved"}))
+        elif args.command == "inspect":
+            print(json.dumps(ReviewStore(args.db).inspect_draft(args.id), ensure_ascii=False))
+        elif args.command == "reject":
+            ReviewStore(args.db).reject(args.id, args.reason)
+            print(json.dumps({"id": args.id, "status": "rejected"}))
         elif args.command == "export": print(json.dumps(ReviewStore(args.db).export_approved(args.id), ensure_ascii=False))
         elif args.command == "audit":
             ok = ReviewStore(args.db).verify_audit()

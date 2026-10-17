@@ -14,15 +14,16 @@ python -m venturelab rank research/2026-10-17-opportunities.json
 python -m projects.reviewgate demo projects/reviewgate/sample.json --db artifacts/review.sqlite
 ```
 
-The demo returns an `id`, `hash`, and `pending` status. It does not approve or export anything. Read the sample draft, then deliberately approve that exact version using the returned values:
+The demo returns an `id`, `hash`, and `pending` status. It does not approve or export anything. Inspect the local draft, then deliberately approve that exact version using the returned values:
 
 ```bash
+python -m projects.reviewgate inspect DRAFT_ID --db artifacts/review.sqlite
 python -m projects.reviewgate approve DRAFT_ID --hash DRAFT_HASH --reviewer 'Your name' --db artifacts/review.sqlite
 python -m projects.reviewgate export DRAFT_ID --db artifacts/review.sqlite
 python -m projects.reviewgate audit --db artifacts/review.sqlite
 ```
 
-Export prints JSON locally; it does not send a client message. Unapproved/rejected drafts and detected state/audit corruption cannot be exported. Repeated approval is an error; repeated export is read-only. Changes require a new pending draft.
+Inspection displays pending text locally for review; it is not approved delivery. To decline a draft, run `python -m projects.reviewgate reject DRAFT_ID --reason 'Needs revision' --db artifacts/review.sqlite`. Export prints JSON locally; it does not send a client message. Unapproved/rejected drafts and detected state/audit corruption cannot be exported. Repeated approval is an error; repeated export is read-only. Changes require a new pending draft.
 
 ```bash
 python -m projects.reviewgate redact path/to/synthetic-source.txt
@@ -36,14 +37,14 @@ The adapter uses the current verified OpenAI Python Agents SDK release, pinned i
 
 ```bash
 python -m venv .venv
-.venv/bin/pip install -r requirements-agent.in
+.venv/bin/pip install -r requirements-agent.lock
 # Configure provider credentials securely in the execution environment.
 # Use synthetic text until real-data handling is independently approved.
 .venv/bin/python -m projects.reviewgate.agent_adapter synthetic-source.txt \
   --db artifacts/review.sqlite --model YOUR_EXPLICIT_MODEL --allow-network
 ```
 
-Without `--allow-network`, the adapter refuses to send text. That flag authorizes transmission of the heuristically masked source to the configured model, not a privacy guarantee. Review the input and provider data-handling terms first. Generated drafts remain pending; no approval, export, email, refund or deployment tool is available. Token/turn limits do not enforce a monetary budget. No live model call was made during this initial build.
+Without `--allow-network`, the adapter refuses to send text. That flag authorizes transmission of the heuristically masked source to the configured model, not a privacy guarantee. Review the input and provider data-handling terms first. The adapter returns a draft ID: use `inspect` to review its text and uncertainties and obtain its exact approval hash. Generated drafts remain pending; the agent has no approval, export, email, refund or deployment tool. Token/turn limits do not enforce a monetary budget. No live model call was made during this initial build.
 
 ## Why this project
 
