@@ -1,0 +1,2 @@
+# Optional ReviewGate generator dependency; verified published on PyPI 2026-10-17.
+openai-agents==0.24.0
