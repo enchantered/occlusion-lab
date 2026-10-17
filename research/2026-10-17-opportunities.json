@@ -1,0 +1,49 @@
+{
+  "evaluated_on": "2026-10-17",
+  "scoring_notice": "All scores are analyst judgments, not survey-derived probabilities, investment advice, or proof of willingness to pay. Evidence eligibility checks presence, not truth, independence, geography, freshness, or commercial validation.",
+  "opportunities": [
+    {
+      "id": "reviewgate",
+      "title": "Human-reviewed AI client briefs for small professional-services firms",
+      "buyer": "Operations lead or managing partner at a 5–50-person bookkeeping or advisory firm",
+      "problem": "AI-assisted client drafts lack a lightweight review record tied to the exact approved version.",
+      "scores": {"pain": 4, "demand": 4, "payment_likelihood": 2, "feasibility": 4, "differentiation": 2, "distribution": 2},
+      "evidence": [
+        {"kind": "demand", "published_on": "2026-09-16", "url": "https://menlovc.com/perspective/2026-the-state-of-consumer-ai/", "finding": "July 2026 survey of 5,067 U.S. adults: AI users ranked accuracy 45%, trustworthiness 40%, and security/privacy 36% among choice factors. This consumer signal is not evidence of a bookkeeping firm's software budget."},
+        {"kind": "demand", "published_on": "2025-08-18", "url": "https://www.uschamber.com/technology/empowering-small-business-the-impact-of-technology-on-u-s-small-business", "finding": "2025 report says 58% of surveyed small businesses use generative AI, versus 40% in 2024. Adoption is not demand for this product."},
+        {"kind": "engineering", "published_on": "2026-05-04", "url": "https://www.gao.gov/products/gao-26-107828", "finding": "GAO describes inaccurate outputs and data privacy/security risks in AI adoption. Government-focused risk corroboration, not SME market-size evidence."},
+        {"kind": "engineering", "published_on": "2025-12-09", "url": "https://www.oecd.org/content/dam/oecd/en/publications/reports/2025/12/ai-adoption-by-small-and-medium-sized-enterprises_9c48eae6/426399c1-en.pdf", "finding": "SME AI adoption constraints include skills, data, finance and privacy/security. Reliable redaction and auditability remain engineering challenges; this MVP does not solve comprehensive data loss prevention."}
+      ],
+      "commercial_hypothesis": "Offer a paid 30-day pilot for one client-brief workflow. Interview 10–15 firms; proceed only if at least two agree to paid pilots and can demonstrate recurring review pain.",
+      "kill_criterion": "Stop or change niche if interviews find no recurring problem, no budget owner, or existing bundled tools solve the workflow adequately.",
+      "competition_risk": "Platform governance suites and provider-native controls may bundle the feature. A review log alone is not a moat.",
+      "geography_limit": "Initial evidence is U.S. consumer/SMB and OECD, not validation of Indian demand."
+    },
+    {
+      "id": "invoice-exceptions",
+      "title": "Invoice reconciliation and approved follow-up queue",
+      "buyer": "Owner/bookkeeper at a small B2B agency or consultancy",
+      "problem": "Overdue invoices and mismatched partial payments require manual review before sending accurate reminders.",
+      "scores": {"pain": 5, "demand": 4, "payment_likelihood": 3, "feasibility": 2, "differentiation": 1, "distribution": 1},
+      "evidence": [
+        {"kind": "demand", "published_on": "2025-05-28", "url": "https://quickbooks.intuit.com/r/small-business-data/small-business-late-payments-report-2025/", "finding": "Intuit's January 2025 survey of 2,487 U.S. businesses with 0–100 employees: 56% were owed unpaid invoices, averaging $17,500; 47% had some invoices overdue over 30 days. Survey association, not causal impact or willingness to buy."},
+        {"kind": "engineering", "published_on": "2025-05-28", "url": "https://quickbooks.intuit.com/r/small-business-data/small-business-late-payments-report-2025/", "finding": "The unpaid-invoice problem motivates an engineering hypothesis: robust partial-payment, credit and dispute matching must precede reminder generation. The source does not benchmark reconciliation difficulty."}
+      ],
+      "competition_risk": "Accounting vendors and AR tools already own integrations and provide reminders; generic reminder generation is poorly differentiated.",
+      "commercial_hypothesis": "Validate cross-system exceptions with five bookkeepers before building an accounting integration."
+    },
+    {
+      "id": "content-approval",
+      "title": "Source-grounded local-business social draft approvals",
+      "buyer": "Owner or marketing lead of a local multi-location service business",
+      "problem": "Keeping fresh channel-specific content consistent consumes time and risks publishing stale offers or unsupported claims.",
+      "scores": {"pain": 3, "demand": 4, "payment_likelihood": 2, "feasibility": 4, "differentiation": 1, "distribution": 1},
+      "evidence": [
+        {"kind": "demand", "published_on": "2025-05-20", "url": "https://www.verizon.com/about/news/2025-state-small-business-survey", "finding": "Verizon/Morning Consult survey of 600 U.S. SMB decision-makers: 54% struggled to produce enough fresh content, while 73% wanted to expand to more channels. Perceptions are not demonstrated software purchasing intent."},
+        {"kind": "engineering", "published_on": "2026-09-16", "url": "https://menlovc.com/perspective/2026-the-state-of-consumer-ai/", "finding": "36% of consumers reported lower interest in known AI-generated content versus 14% higher interest. Engineering hypothesis: grounded claims, freshness and review matter more than raw generation volume; not proof that this architecture changes outcomes."}
+      ],
+      "competition_risk": "Crowded generator/scheduler market; fragile platform APIs and consent requirements. Draft/export only would avoid publishing risk but weaken differentiation.",
+      "commercial_hypothesis": "Test retention and qualified inquiries in a single vertical, not generated-post counts."
+    }
+  ]
+}

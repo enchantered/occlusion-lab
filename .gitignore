@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite3
+artifacts/
+.coverage
+htmlcov/
+.pytest_cache/
+*.egg-info/
+build/
+dist/
