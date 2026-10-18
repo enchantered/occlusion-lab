@@ -6,7 +6,9 @@ entire database or rolls back both state and log to a consistent snapshot.
 from contextlib import contextmanager
 import hashlib
 import json
+import os
 import re
+import stat
 import sqlite3
 import uuid
 from pathlib import Path
@@ -74,10 +76,50 @@ class ReviewStore:
         self.db_path = str(db_path)
         if not self.db_path or self.db_path == ":memory:":
             raise ReviewError("a persistent database file path is required")
-        Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
+        self._prepare_storage()
         with self._connect() as db:
             db.execute("CREATE TABLE IF NOT EXISTS drafts (id TEXT PRIMARY KEY, source_hash TEXT NOT NULL, draft TEXT NOT NULL, draft_hash TEXT NOT NULL, status TEXT NOT NULL, reviewer TEXT, reason TEXT)")
             db.execute("CREATE TABLE IF NOT EXISTS audit (seq INTEGER PRIMARY KEY AUTOINCREMENT, prev_hash TEXT NOT NULL, event TEXT NOT NULL, event_hash TEXT NOT NULL)")
+
+    def _prepare_storage(self):
+        """Create private missing directories/database; reject unsafe existing files.
+
+        Existing database files with any group/other permissions are rejected,
+        not chmodded. This avoids silently changing user-managed files. Directories
+        that already exist are never chmodded; applications should keep their
+        database directory trusted against concurrent same-user replacement.
+        """
+        path = Path(self.db_path)
+        parent = path.parent
+        missing = []
+        current = parent
+        while not current.exists():
+            missing.append(current)
+            if current.parent == current:
+                raise ReviewError("cannot locate database parent directory")
+            current = current.parent
+        for directory in reversed(missing):
+            try:
+                os.mkdir(directory, 0o700)
+            except FileExistsError:
+                pass
+        flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
+        flags |= getattr(os, "O_NOFOLLOW", 0)
+        try:
+            fd = os.open(self.db_path, flags, 0o600)
+        except FileExistsError:
+            try:
+                info = os.lstat(self.db_path)
+            except OSError as exc:
+                raise ReviewError(f"cannot inspect database file: {exc}") from exc
+            if not stat.S_ISREG(info.st_mode):
+                raise ReviewError("database path must be a regular file, not a symlink or special file")
+            if info.st_mode & 0o077:
+                raise ReviewError("existing database permissions are unsafe; set mode 0600 before opening")
+        except OSError as exc:
+            raise ReviewError(f"cannot securely create database file: {exc}") from exc
+        else:
+            os.close(fd)
 
     @contextmanager
     def _connect(self):

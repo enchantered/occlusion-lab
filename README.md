@@ -23,6 +23,8 @@ python -m projects.reviewgate export DRAFT_ID --db artifacts/review.sqlite
 python -m projects.reviewgate audit --db artifacts/review.sqlite
 ```
 
+On POSIX systems, new database files are created with owner-only permissions (0600), and newly created parent directories use 0700. Existing parent directories are not changed. Symlink/special-file database paths and existing files with group/other permission bits are rejected before opening. If an older database is rejected, inspect the path and deliberately set its permissions to 0600 before reopening; the application does not silently chmod user files. Keep the parent directory trusted. These initialization checks do not prevent later replacement by the same user, encrypt plaintext, authenticate reviewers, or protect backups.
+
 Inspection displays pending text locally for review; it is not approved delivery. To decline a draft, run `python -m projects.reviewgate reject DRAFT_ID --reason 'Needs revision' --db artifacts/review.sqlite`. Export prints JSON locally; it does not send a client message. Unapproved/rejected drafts and detected state/audit corruption cannot be exported. Repeated approval is an error; repeated export is read-only. Changes require a new pending draft.
 
 ```bash
