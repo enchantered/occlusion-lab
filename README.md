@@ -2,7 +2,7 @@
 
 Evidence-led daily MVP experiments, with tests and substantive incremental maintenance. The first experiment is **ReviewGate**, a local-first approval workflow for AI-assisted client briefs at small professional-services firms.
 
-GitHub account: `enchantered`. Remote creation was blocked by the connected account's `CreateRepository` permission. This workspace is a local Git repository; do not treat it as published until a successful remote push is verified. The Cue coordinator owns the daily schedule. This project creates no recurring task or scheduled GitHub Action.
+GitHub account: `enchantered`. Private repository creation is blocked by the connector's `CreateRepository` permission. The existing `enchantered/ProjectAdi` repository is public and empty; its connector-authenticated Git push also returned HTTP 403 on 2026-10-18. No code was published and no repository visibility was changed. This workspace is a local Git repository; do not treat it as published until a successful remote push is verified. The Cue coordinator owns the daily schedule. This project creates no recurring task or scheduled GitHub Action.
 
 ## Run the first experiment
 
@@ -35,7 +35,7 @@ Redaction returns masked text and finding types/offsets, without returning the r
 
 ## Optional agent-generated drafts
 
-The adapter uses the current verified OpenAI Python Agents SDK release, pinned in `requirements-agent.in`. It uses a typed output, no action tools, disabled tracing, a two-turn limit, and a 900-output-token setting. The chosen model must support the requested settings. Import/configuration checks are not live provider validation.
+The adapter uses OpenAI Python Agents SDK 0.24.0, pinned in `requirements-agent.in`. It uses a typed output, no action tools, disabled tracing, a two-turn limit, and a 900-output-token setting. The chosen model must support the requested settings. Actual SDK Runner and typed-output parsing now pass tests with a synthetic offline model; this is not live provider validation.
 
 ```bash
 python -m venv .venv
@@ -58,7 +58,9 @@ The commercial gate is 10–15 buyer interviews and at least two paid pilot comm
 
 Follow [AGENTS.md](AGENTS.md) on every coordinator-run execution. Research current sources, inspect active projects, implement one meaningful increment, run the tests, inspect the diff, then commit and push only to an authorized repository. Maintain older projects based on real defects and prioritized work; do not generate artificial activity commits. A new experiment may be declined if evidence is weak or critical maintenance takes priority.
 
-The [project backlog](projects/reviewgate/BACKLOG.md) prioritizes identity, storage protection, independently anchored audit evidence and real redaction evaluation before customer use. [Tooling notes](docs/AGENT_TOOLING.md) link the official SDK capabilities. CI runs offline tests on Python 3.11, 3.12 and 3.13 on push/PR only; remote CI has not run until publishing succeeds.
+The [2026-10-18 review](research/2026-10-18-decision.md) keeps ReviewGate ahead of invoice exceptions and subscription leak detection as a pilot hypothesis, not an investment verdict. Today's increments harden local storage and exercise the actual SDK without a provider call.
+
+The [project backlog](projects/reviewgate/BACKLOG.md) prioritizes identity, retention/encrypted backups, independently anchored audit evidence and real redaction evaluation before customer use. [Tooling notes](docs/AGENT_TOOLING.md) link the official SDK capabilities. CI defines core tests on Python 3.11, 3.12 and 3.13 plus an SDK compatibility job on push/PR only; remote CI has not run because publishing remains blocked. Local tests ran on Python 3.12.
 
 ## Important limitations
 

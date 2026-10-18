@@ -1,0 +1,55 @@
+{
+  "evaluated_on": "2026-10-18",
+  "scoring_notice": "All scores are analyst judgments, not survey-derived probabilities, investment advice, or proof of willingness to pay. Evidence eligibility checks presence, not truth, independence, geography, freshness, or commercial validation.",
+  "undated_sources": [
+    {"observed_on": "2026-10-18", "url": "https://openai.github.io/openai-agents-python/human_in_the_loop/", "finding": "Official SDK documentation provides native approval primitives; this is engineering context and a commoditization warning. No publication date asserted."},
+    {"observed_on": "2026-10-18", "url": "https://www.getcanopy.com/pricing/", "finding": "Accounting workflow plans at $74–$149/user/month are an adjacent category benchmark, not willingness to buy this add-on. No publication date asserted."}
+  ],
+  "opportunities": [
+    {
+      "id": "reviewgate",
+      "title": "Human-reviewed AI client briefs for small professional-services firms",
+      "buyer": "Operations lead or managing partner at a 5–50-person bookkeeping or advisory firm",
+      "problem": "AI-assisted client drafts lack a lightweight review record tied to the exact approved version.",
+      "scores": {"pain": 4, "demand": 4, "payment_likelihood": 2, "feasibility": 4, "differentiation": 2, "distribution": 2},
+      "evidence": [
+        {"kind": "demand", "published_on": "2026-09-16", "url": "https://menlovc.com/perspective/2026-the-state-of-consumer-ai/", "finding": "July 2026 survey of 5,067 U.S. adults: AI users ranked accuracy 45%, trustworthiness 40%, and security/privacy 36% among choice factors. Consumer signal, not evidence of a bookkeeping firm's software budget."},
+        {"kind": "demand", "published_on": "2025-08-18", "url": "https://www.uschamber.com/technology/empowering-small-business-the-impact-of-technology-on-u-s-small-business", "finding": "2025 report says 58% of surveyed small businesses use generative AI, versus 40% in 2024. Adoption is not demand for this product."},
+        {"kind": "engineering", "published_on": "2026-05-04", "url": "https://www.gao.gov/products/gao-26-107828", "finding": "Retained engineering-risk evidence from the prior decision: GAO describes inaccurate outputs and privacy/security risks. Government-focused risk corroboration, not SME purchasing evidence. Today's current SDK/competitor observations are recorded separately as undated sources."}
+      ],
+      "commercial_hypothesis": "Offer a paid 30-day pilot for one client-brief workflow. Interview 10–15 firms; proceed only if at least two agree to paid pilots and can demonstrate recurring review pain.",
+      "kill_criterion": "Stop or change niche if interviews find no recurring problem, no budget owner, or existing bundled tools solve the workflow adequately.",
+      "competition_risk": "Platform governance suites and provider-native controls may bundle the feature. SDK-native approval primitives make a simple approval log copyable; a review log alone is not a moat.",
+      "geography_limit": "Initial evidence is U.S. consumer/SMB, not validation of Indian demand."
+    },
+    {
+      "id": "invoice-exceptions",
+      "title": "Invoice reconciliation and approved follow-up queue",
+      "buyer": "Owner/bookkeeper at a small B2B agency or consultancy",
+      "problem": "Overdue invoices and mismatched partial payments require manual review before sending accurate reminders.",
+      "scores": {"pain": 5, "demand": 4, "payment_likelihood": 3, "feasibility": 2, "differentiation": 1, "distribution": 1},
+      "evidence": [
+        {"kind": "demand", "published_on": "2025-05-28", "url": "https://quickbooks.intuit.com/r/small-business-data/small-business-late-payments-report-2025/", "finding": "Intuit's January 2025 survey of 2,487 U.S. businesses with 0–100 employees: 56% were owed unpaid invoices, averaging $17,500; 47% had some invoices overdue over 30 days. Survey association, not causal impact or willingness to buy."},
+        {"kind": "engineering", "published_on": "2025-05-28", "url": "https://quickbooks.intuit.com/r/small-business-data/small-business-late-payments-report-2025/", "finding": "The unpaid-invoice problem motivates an engineering hypothesis: robust partial-payment, credit and dispute matching must precede reminder generation. The source does not benchmark reconciliation difficulty."}
+      ],
+      "competition_risk": "Accounting vendors and AR tools already own integrations and provide reminders; generic reminder generation is poorly differentiated. Clearer pain does not establish product-specific willingness to pay or defensibility.",
+      "commercial_hypothesis": "Validate cross-system exceptions with five bookkeepers before building an accounting integration.",
+      "geography_limit": "Evidence is U.S.-focused and does not establish Indian demand."
+    },
+    {
+      "id": "subscription-leak-detector",
+      "title": "Unused subscription detection and cancellation follow-through",
+      "buyer": "U.S. consumer managing recurring household subscriptions",
+      "problem": "Consumers may continue paying for subscriptions they rarely use and need to identify and stop unwanted recurring charges.",
+      "scores": {"pain": 3, "demand": 3, "payment_likelihood": 1, "feasibility": 2, "differentiation": 1, "distribution": 1},
+      "evidence": [
+        {"kind": "demand", "published_on": "2025-06-18", "url": "https://www.cnet.com/tech/services-and-software/subscription-survey-2025/", "finding": "CNET/YouGov June 2025 survey of 2,440 respondents estimated $204/year in unused subscriptions. This indicates reported consumer waste, not willingness to pay a separate detector."},
+        {"kind": "engineering", "published_on": "2025-06-18", "url": "https://www.cnet.com/tech/services-and-software/subscription-survey-2025/", "finding": "Turning reported unused subscriptions into reliable savings would require identifying recurring charges and supporting effective cancellation; the survey does not assess data-access feasibility, detection accuracy, or cancellation outcomes."},
+        {"kind": "competition", "published_on": "2025-06-18", "url": "https://www.cnet.com/tech/services-and-software/subscription-survey-2025/", "finding": "The survey's unused-subscription estimate does not demonstrate a gap versus bank/card account features or existing subscription-management services; willingness to pay, distribution and differentiation remain weakly evidenced."}
+      ],
+      "competition_risk": "Potential substitutes include bank/card transaction features and existing subscription-management services; transaction access and cancellation follow-through create trust and execution burdens.",
+      "commercial_hypothesis": "Do not build before testing whether consumers will pay for verified net savings and whether access/cancellation can be delivered reliably.",
+      "geography_limit": "Evidence is U.S. consumer survey data, not validation in India or another market."
+    }
+  ]
+}
