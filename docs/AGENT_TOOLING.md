@@ -9,3 +9,9 @@ The model is selected explicitly at execution time instead of hardcoding an unve
 Model tracing should be disabled for this sensitive-workflow prototype. Review every input before enabling any network call. Regex masking is not an information-security boundary: names, account numbers, confidential business facts and many other fields can survive masking. Use synthetic inputs until the privacy, security and contractual controls required for real client work exist.
 
 A bounded run reduces runaway interactions but is not a monetary budget. The outer coordinator must enforce spending authorization and provider-level limits before any live model evaluation. SDK imports or mocked tests prove neither live provider compatibility nor useful draft quality.
+
+## Offline SDK compatibility check
+
+`tests/test_sdk_compatibility.py` runs the real SDK `Runner`, typed output parsing, adapter validation and SQLite persistence against a synthetic `Model` implementation. The SDK-backed tests assert masked input, empty tools/handoffs, disabled tracing, the configured token limit, pending-only storage and rejection of blank output without saving. Socket connections are forbidden during generation. This exercises SDK 0.24.0 without a model-provider call, credentials or model charges; it does not evaluate factual quality or live API compatibility.
+
+Run `.venv/bin/python -m unittest discover -s tests -v` after installing the pinned optional dependencies. Without the SDK, these two tests skip while the core tests still run. CI has a separate SDK job with an explicit import gate, so a missing installation cannot masquerade as successful compatibility coverage. Dependency installation itself requires package-index access.

@@ -4,10 +4,10 @@
 
 1. Validate the buyer and recurring review problem with 10–15 interviews; secure at least two paid pilot commitments before expanding scope. No outreach is authorized by this repository alone.
 2. Add authenticated reviewer identity and authorization. A reviewer name supplied on the command line is an assertion, not identity verification.
-3. Add OS-level storage protections, retention/deletion policy, and encrypted backups as required by pilot agreements. SQLite draft text is currently plaintext.
+3. POSIX owner-only new database/directory modes and unsafe-path rejection are implemented and tested. Still add retention/deletion policy and encrypted backups as required by pilot agreements. SQLite draft text remains plaintext; trusted parent directories are required.
 4. Add an externally anchored or signed audit checkpoint. A local hash chain can detect many mutations but cannot prove integrity if an attacker rewrites the entire database or removes a fully consistent tail. Do not call it immutable.
 5. Add document-level data classification and expert-reviewed redaction evaluations. Regex masking misses names, account numbers and context-specific sensitive information. It can also mask harmless text. Never use its output as proof that a source is safe to transmit.
-6. Test optional SDK compatibility against the pinned dependency in an isolated environment. Use a fake provider first; run a real model only after explicit data-transfer permission and a budget. Validate quality with a representative, consented evaluation set.
+6. Real Runner/typed-output compatibility with pinned SDK 0.24.0 now passes using an offline synthetic model with socket connections forbidden. Still run a real provider only after explicit data-transfer permission and a budget, and validate quality with a representative, consented evaluation set. Offline compatibility is not live provider validation.
 
 ## Next product experiments, only after validation
 
