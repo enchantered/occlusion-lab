@@ -4,7 +4,11 @@ A small, deterministic grid-world for exploring **occupancy mapping under occlus
 
 ## Why this exists
 
-Pathfinding and obstacle avoidance are related but distinct: a planner searches a representation of traversable space, while obstacle avoidance concerns reacting to obstacles in the environment. A [Godot community discussion](https://forum.godotengine.org/t/obstacles-in-pathfinding-do-not-work/59417) from 2026 illustrates that this distinction continues to cause confusion. Mapping also has its own failure modes: [ROS2 point-cloud-to-occupancy-grid troubleshooting notes](https://github.com/hermanumrao/ROS2_pcd_to_occupancy_grid/blob/main/README.md) discuss unknown or sparse maps versus noisy ones. This tiny controlled example makes visibility, unknown cells, and planning assumptions inspectable. **It does not fix, model, or stand in for Godot avoidance, ROS mapping, or any real robotics system.**
+Pathfinding and obstacle avoidance are related but distinct: a planner searches a representation of traversable space, while obstacle avoidance concerns reacting to obstacles in the environment. A [Godot community discussion](https://forum.godotengine.org/t/obstacles-in-pathfinding-do-not-work/59417), opened in 2024 with further replies in 2026, illustrates that this distinction continues to cause confusion. Mapping also has its own failure modes: [ROS2 point-cloud-to-occupancy-grid troubleshooting notes](https://github.com/hermanumrao/ROS2_pcd_to_occupancy_grid/blob/main/README.md) discuss unknown or sparse maps versus noisy ones. This tiny controlled example makes visibility, unknown cells, and planning assumptions inspectable. **It does not fix, model, or stand in for Godot avoidance, ROS mapping, or any real robotics system.**
+
+## Living consumer research
+
+The [consumer-behavior log](docs/consumer-behavior-log.md) starts with a **2026-10-19** source-backed baseline on AI apps versus established tools, recurring user friction, and small project hypotheses. Future runs should append evidence, competitor checks, validation results, and maintenance notes. These research ideas are not implemented consumer features, and the log does not activate the paused daily schedule.
 
 ## Quickstart
 
@@ -29,9 +33,9 @@ PYTHONPATH=src python -m occlusion_lab demo --json
 PYTHONPATH=src python -m unittest discover -s tests -v
 ```
 
-The ordinary demo prints ground truth beside the partial observed map, with `?` unknown cells, `#` occupied walls, `.` observed free cells, `S`/`G` endpoints, and `*` the route. Counts exclude markers. `--json` emits stable, sorted JSON without the ASCII display.
+The ordinary demo prints ground truth followed by the partial observed map, with `?` unknown cells, `#` occupied walls, `.` observed free cells, `S`/`G` endpoints, and `*` the route. Counts exclude markers. `--json` emits stable, sorted JSON without the ASCII display.
 
-Actual JSON metrics from the fixed fixture (`path_cells` shown in abbreviated form here; the CLI emits the full route):
+Actual JSON metrics from the fixed fixture (formatted compactly here):
 
 ```json
 {
