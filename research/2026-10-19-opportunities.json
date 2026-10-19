@@ -1,0 +1,58 @@
+{
+  "evaluated_on": "2026-10-19",
+  "scoring_notice": "Scores are analyst judgments using venturelab/opportunities.py weights, not probabilities, investment advice, or proof of willingness to pay. Eligibility checks only for evidence kinds; it does not verify source truth, quality, freshness, or commercial validation.",
+  "undated_sources": [
+    {"observed_on": "2026-10-19", "url": "https://openai.github.io/openai-agents-python/human_in_the_loop/", "finding": "Official Agents SDK docs describe native tool approval, pause/resume, durable run state and server-side security responsibilities. Current page has no asserted publication date. This is an approval primitive and a commoditization warning, not evidence of an exact-version client-brief approval product."},
+    {"observed_on": "2026-10-19", "url": "https://www.bill.com/product/pricing", "finding": "Current BILL pricing page lists AR invoice tracking, reminders and accounting sync in paid plans at $49, $65 and $89/user/month; not a price or willingness-to-pay signal for a separate exception queue. No publication date asserted."},
+    {"observed_on": "2026-10-19", "url": "https://www.rocketmoney.com/feature/manage-subscriptions", "finding": "Current Rocket Money feature page offers recurring subscription identification and cancellation assistance; it states more than 5 million cancellations. Current competitor information only; no publication date asserted."}
+  ],
+  "opportunities": [
+    {
+      "id": "invoice-exceptions",
+      "title": "Invoice reconciliation and approved follow-up queue",
+      "buyer": "Owner or bookkeeper at a small U.S. B2B agency or consultancy",
+      "problem": "Overdue balances and mismatched payments require manual investigation and accurate follow-up before collections.",
+      "scores": {"pain": 5, "demand": 5, "payment_likelihood": 3, "feasibility": 2, "differentiation": 1, "distribution": 1},
+      "evidence": [
+        {"kind": "demand", "published_on": "2026-07-07", "url": "https://quickbooks.intuit.com/r/small-business-data/small-business-late-payments-report-2026/", "finding": "QuickBooks 2026 report says 59% of surveyed small businesses had invoices 30+ days overdue (up from 47%); businesses with unpaid invoices averaged $17.7K owed. The source combines its ongoing survey (~5,000 quarterly respondents) and a Dec 2025 online survey of 1,305 U.S. owners. Strong problem evidence, not product purchase intent."},
+        {"kind": "engineering", "published_on": "2026-07-07", "url": "https://quickbooks.intuit.com/r/small-business-data/small-business-late-payments-report-2026/", "finding": "The report links faster follow-up and more automated processes with fewer overdue invoices, but does not test a new product. A standalone exception workflow would need reliable reconciliation across payment/credit/dispute data; current source does not establish implementation feasibility."},
+        {"kind": "competition", "published_on": "2026-07-07", "url": "https://quickbooks.intuit.com/r/small-business-data/small-business-late-payments-report-2026/", "finding": "The report says 26% identify digital tools for chasing/collecting as useful. Existing accounting/AR suites already cover reminders and invoice status, so that signal is not unmet demand for another tool."}
+      ],
+      "commercial_hypothesis": "Do not start a build yet. If existing ReviewGate interviews are extended to test this alternative, require a named budget owner, recurring exception examples and at least two paid pilots before committing engineering effort.",
+      "kill_criterion": "Reject if buyers already resolve exceptions adequately in their accounting/AR tools, no repeat manual exception burden is demonstrated, or no buyer funds a pilot.",
+      "competition_risk": "BILL and accounting platforms already bundle AR tracking, reminders, payments and reconciliation integrations; a narrow add-on would face data access and trust barriers.",
+      "geography_limit": "Evidence is U.S.-focused; India remains unvalidated. Survey-reported late-payment pain is not willingness to pay for this product."
+    },
+    {
+      "id": "reviewgate",
+      "title": "Human-reviewed AI client briefs for small professional-services firms",
+      "buyer": "Operations lead or managing partner at a 5–50-person U.S. bookkeeping or advisory firm",
+      "problem": "AI-assisted client drafts may be inaccurate or expose information, and teams may lack a clear record that a reviewer approved the exact version sent.",
+      "scores": {"pain": 4, "demand": 4, "payment_likelihood": 2, "feasibility": 4, "differentiation": 2, "distribution": 2},
+      "evidence": [
+        {"kind": "demand", "published_on": "2026-03-17", "url": "https://www.goldmansachs.com/community-transformation/10000-small-businesses-voices/insights/ai-presents-a-major-opportunity-for-small-businesses", "finding": "Survey of 1,256 Goldman Sachs 10,000 Small Businesses participants, fielded Jan 27–Feb 4, 2026 across all U.S. states, DC and Puerto Rico: 76% use AI, 50% of users cite privacy/security concerns, 49% technical-expertise gaps; only 14% fully integrate AI into core operations. This cohort may not represent all SMBs; these are implementation signals, not software budgets."},
+        {"kind": "engineering", "published_on": "2026-05-04", "url": "https://www.gao.gov/products/gao-26-107828", "finding": "Retained GAO engineering-risk evidence: inaccurate AI outputs and privacy/security risks support the need to control review risk, but are not firm-specific buying evidence."},
+        {"kind": "competition", "published_on": "2026-03-17", "url": "https://www.goldmansachs.com/community-transformation/10000-small-businesses-voices/insights/ai-presents-a-major-opportunity-for-small-businesses", "finding": "The survey reports a need for implementation support but no specific need for standalone approval records. Provider-native approval APIs and bundled workflow tools may satisfy the underlying job."}
+      ],
+      "commercial_hypothesis": "Continue only the existing narrow hypothesis: exact-version reviewer approval for one client-brief workflow. Keep the gate at 10–15 buyer interviews and at least two paid pilots before adding integrations or expanding scope.",
+      "kill_criterion": "Stop or change niche if interviews show no recurring review pain, no budget owner, or current bundled tools adequately solve it; do not infer demand from AI adoption or risk concerns.",
+      "competition_risk": "OpenAI Agents SDK already provides native approval and durable run-state primitives (see undated observation); basic approval logging is copyable. No moat or defensibility is established.",
+      "geography_limit": "Evidence covers a selected U.S. SMB cohort and general U.S. risks, not Indian demand. India remains unvalidated."
+    },
+    {
+      "id": "subscription-leak",
+      "title": "Consumer unused-subscription detector",
+      "buyer": "U.S. consumer who pays for multiple recurring subscriptions",
+      "problem": "Consumers may keep paying for subscriptions they no longer use or want.",
+      "scores": {"pain": 4, "demand": 3, "payment_likelihood": 1, "feasibility": 2, "differentiation": 1, "distribution": 1},
+      "evidence": [
+        {"kind": "demand", "published_on": "2026-07-06", "url": "https://www.cnet.com/tech/services-and-software/subscription-survey-2026/", "finding": "CNET/YouGov online survey of 2,522 U.S. adults, fielded Apr 29–May 1, 2026 and weighted to U.S. adults: respondents estimated $21/month ($252/year) in unused subscriptions, versus $17/month in 2025. Self-reported consumer loss, not purchase intent for a detector."},
+        {"kind": "engineering", "published_on": "2026-07-06", "url": "https://www.cnet.com/tech/services-and-software/subscription-survey-2026/", "finding": "The survey does not assess transaction-access coverage, classification accuracy, cancellation success, or consumer data-sharing willingness. A reliable detector requires these to convert reported waste into realized savings."},
+        {"kind": "competition", "published_on": "2026-07-06", "url": "https://www.cnet.com/tech/services-and-software/subscription-survey-2026/", "finding": "The report gives ways to find and cancel subscriptions; it does not establish a gap in existing money apps. Rocket Money currently advertises subscription detection and cancellation assistance (see undated competitor observation)."}
+      ],
+      "competition_risk": "Existing money apps already detect recurring charges and offer cancellation. Data access, trust and distribution are difficult; one-time savings may not support recurring consumer payment.",
+      "commercial_hypothesis": "Do not build absent credible evidence consumers will pay for incremental, verified net savings beyond existing banking and subscription-management tools.",
+      "geography_limit": "U.S. consumer survey only; no India validation."
+    }
+  ]
+}

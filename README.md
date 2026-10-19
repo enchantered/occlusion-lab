@@ -2,7 +2,7 @@
 
 Evidence-led daily MVP experiments, with tests and substantive incremental maintenance. The first experiment is **ReviewGate**, a local-first approval workflow for AI-assisted client briefs at small professional-services firms.
 
-GitHub account: `enchantered`. Private repository creation is blocked by the connector's `CreateRepository` permission. The existing `enchantered/ProjectAdi` repository is public and empty; its connector-authenticated Git push also returned HTTP 403 on 2026-10-18. No code was published and no repository visibility was changed. This workspace is a local Git repository; do not treat it as published until a successful remote push is verified. The Cue coordinator owns the daily schedule. This project creates no recurring task or scheduled GitHub Action.
+GitHub account: `enchantered`. Private repository creation was denied by the connector's `CreateRepository` permission on October 18. The existing `enchantered/ProjectAdi` repository is public and empty; its connector-authenticated Git push again returned HTTP 403 on 2026-10-19. No code was published and no repository visibility was changed. This workspace is a local Git repository; do not treat it as published until a successful remote push is verified. The Cue coordinator owns the daily schedule. This project creates no recurring task or scheduled GitHub Action.
 
 ## Run the first experiment
 
@@ -33,6 +33,20 @@ python -m projects.reviewgate redact path/to/synthetic-source.txt
 
 Redaction returns masked text and finding types/offsets, without returning the raw matched values. It is heuristic and does not reliably remove all personal or confidential information.
 
+## Detect rollback against a trusted checkpoint
+
+The ordinary audit validates internal consistency, so restoring an older, consistent database can pass. A checkpoint records the verified nonempty history's event count and head hash, without draft text. Retain its JSON in a separate trusted location, then verify that the database still contains that exact history prefix:
+
+```bash
+python -m projects.reviewgate checkpoint --db artifacts/review.sqlite
+# Retain the printed JSON separately; the commands do not upload or protect it.
+python -m projects.reviewgate audit --db artifacts/review.sqlite --checkpoint /path/to/trusted-checkpoint.json
+```
+
+Later valid events may be appended. A rollback before the checkpoint, a different history, or internal corruption fails verification. Exit status is 0 for a match, 1 for a validly formed witness that does not match, and 2 for an invalid/unreadable witness or command error. Checkpoint files are limited to 4 KB. Empty databases cannot issue a meaningful checkpoint.
+
+This is opt-in audit verification, not an automatic export gate, signature, timestamp service or external anchoring integration. It only adds evidence if the retained checkpoint itself is trusted and protected separately. Replacing both the database and witness defeats it, and changes after a successful audit need another check. It does not authenticate reviewer identity or encrypt data.
+
 ## Optional agent-generated drafts
 
 The adapter uses OpenAI Python Agents SDK 0.24.0, pinned in `requirements-agent.in`. It uses a typed output, no action tools, disabled tracing, a two-turn limit, and a 900-output-token setting. The chosen model must support the requested settings. Actual SDK Runner and typed-output parsing now pass tests with a synthetic offline model; this is not live provider validation.
@@ -58,7 +72,7 @@ The commercial gate is 10–15 buyer interviews and at least two paid pilot comm
 
 Follow [AGENTS.md](AGENTS.md) on every coordinator-run execution. Research current sources, inspect active projects, implement one meaningful increment, run the tests, inspect the diff, then commit and push only to an authorized repository. Maintain older projects based on real defects and prioritized work; do not generate artificial activity commits. A new experiment may be declined if evidence is weak or critical maintenance takes priority.
 
-The [2026-10-18 review](research/2026-10-18-decision.md) keeps ReviewGate ahead of invoice exceptions and subscription leak detection as a pilot hypothesis, not an investment verdict. Today's increments harden local storage and exercise the actual SDK without a provider call.
+The [2026-10-19 review](research/2026-10-19-decision.md) now places invoice exceptions first for discovery (67/100 versus ReviewGate 64/100 and subscription detection 46/100), based on newer 2026 late-payment evidence. This subjective lead is not an investment verdict or build authorization. ReviewGate remains the only active prototype: today's increments add trusted-checkpoint audit verification and transaction-safety regressions rather than another unvalidated product. The October 18 storage hardening and real-SDK offline tests remain in place.
 
 The [project backlog](projects/reviewgate/BACKLOG.md) prioritizes identity, retention/encrypted backups, independently anchored audit evidence and real redaction evaluation before customer use. [Tooling notes](docs/AGENT_TOOLING.md) link the official SDK capabilities. CI defines core tests on Python 3.11, 3.12 and 3.13 plus an SDK compatibility job on push/PR only; remote CI has not run because publishing remains blocked. Local tests ran on Python 3.12.
 
