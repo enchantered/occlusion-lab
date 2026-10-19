@@ -57,3 +57,7 @@ Append a new dated section; preserve earlier evidence and record corrections exp
 Reverse-engineer workflows and publicly documented interfaces, not proprietary code or private data. Use original implementations, user-authorized imports and licensed assets. Keep releases private unless public publication is explicitly authorized; before a public release, settle licensing and provide beginner setup, examples, accessibility checks, troubleshooting and release notes.
 
 **Operational status:** this entry does not enable monitoring, create a schedule, reactivate daily work, or make the repository public. The existing daily schedule remains paused pending coordinator action.
+
+### Daily maintenance requirement recorded on 2026-10-19
+
+Once the coordinator reactivates daily execution, review **each managed portfolio project** every day, not just the newest repository. Scout fresh community reports, check usability and reproducible bugs, implement requested features within their approved scope, maintain tests, and keep beginner documentation current. Commit and push meaningful, validated changes per project daily; do not manufacture empty commits or unrequested features to create activity. If no justified change is available, record that outcome in the daily run report rather than pretending an improvement shipped. This is a recorded operating requirement, not a claim that daily maintenance has started or that unrelated repositories may be changed.
