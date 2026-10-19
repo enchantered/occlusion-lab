@@ -264,3 +264,48 @@ class ReviewStore:
                 return self._verify_audit(db)
         except sqlite3.Error:
             return False
+
+    def create_checkpoint(self) -> dict:
+        """Return a local witness for the current nonempty, verified audit prefix.
+
+        This only detects rollback/rewrite relative to a separately retained
+        trusted witness. It provides no automatic external anchoring and no
+        protection if both the witness and database are compromised.
+        """
+        try:
+            with self._connect() as db:
+                db.execute("BEGIN")
+                if not self._verify_audit(db):
+                    raise ReviewError("cannot create checkpoint: audit integrity check failed")
+                row = db.execute("SELECT seq,event_hash FROM audit ORDER BY seq DESC LIMIT 1").fetchone()
+                if row is None:
+                    raise ReviewError("cannot create checkpoint for empty audit")
+                return {"version": 1, "event_count": row["seq"], "head_hash": row["event_hash"]}
+        except sqlite3.Error as exc:
+            raise ReviewError(f"cannot create checkpoint: {exc}") from exc
+
+    def verify_checkpoint(self, checkpoint) -> bool:
+        """Compare a caller-retained checkpoint to a verified local audit prefix.
+
+        The checkpoint is a trusted witness supplied by the caller, not loaded
+        from this database. Subsequent valid events after its sequence are allowed.
+        """
+        message = "invalid checkpoint"
+        if not isinstance(checkpoint, dict) or set(checkpoint) != {"version", "event_count", "head_hash"}:
+            raise ReviewError(f"{message}: expected exactly version, event_count, and head_hash")
+        count, version, head = checkpoint["event_count"], checkpoint["version"], checkpoint["head_hash"]
+        if type(version) is not int or version != 1:
+            raise ReviewError(f"{message}: version must be integer 1")
+        if type(count) is not int or not 1 <= count <= (2 ** 63 - 1):
+            raise ReviewError(f"{message}: event_count must be a positive signed 64-bit integer")
+        if not isinstance(head, str) or re.fullmatch(r"[0-9a-f]{64}", head) is None:
+            raise ReviewError(f"{message}: head_hash must be 64 lowercase hexadecimal characters")
+        try:
+            with self._connect() as db:
+                db.execute("BEGIN")
+                if not self._verify_audit(db):
+                    return False
+                row = db.execute("SELECT event_hash FROM audit WHERE seq=?", (count,)).fetchone()
+                return row is not None and row["event_hash"] == head
+        except sqlite3.Error:
+            return False
