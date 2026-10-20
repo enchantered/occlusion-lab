@@ -125,6 +125,31 @@ class CLITests(unittest.TestCase):
         self.assertTrue(metrics["reachable_on_observed_free_cells"])
         self.assertEqual(len(metrics["path_cells"]), planned.steps + 1)
 
+    def test_default_radius_metrics_and_configurable_zero_radius(self):
+        root = os.path.dirname(os.path.dirname(__file__))
+        env = dict(os.environ, PYTHONPATH=os.path.join(root, "src"))
+        command = [sys.executable, "-m", "occlusion_lab", "demo", "--json"]
+        default = json.loads(subprocess.check_output(command, cwd=root, env=env, text=True))
+        self.assertEqual(default["observation_radius_manhattan"], OBSERVATION_RADIUS)
+        self.assertEqual((default["path_steps"], default["expanded_nodes"],
+                          default["observed_free_cells"], default["unknown_cells"]), (8, 9, 29, 31))
+        limited = json.loads(subprocess.check_output(command + ["--radius", "0"], cwd=root, env=env, text=True))
+        self.assertEqual(limited["observation_radius_manhattan"], 0)
+        self.assertFalse(limited["reachable_on_observed_free_cells"])
+        self.assertIsNone(limited["path_cells"])
+        self.assertEqual(limited["unknown_cells"], len(WORLD) * len(WORLD[0]) - 1)
+
+    def test_negative_radius_rejected_and_unreachable_explained(self):
+        root = os.path.dirname(os.path.dirname(__file__))
+        env = dict(os.environ, PYTHONPATH=os.path.join(root, "src"))
+        command = [sys.executable, "-m", "occlusion_lab", "demo"]
+        bad = subprocess.run(command + ["--radius", "-1"], cwd=root, env=env, text=True, capture_output=True)
+        self.assertNotEqual(bad.returncode, 0)
+        self.assertIn("--radius must be a non-negative integer", bad.stderr)
+        limited = subprocess.check_output(command + ["--radius", "0"], cwd=root, env=env, text=True)
+        self.assertIn("unknown cells are blocked for planning", limited)
+        self.assertIn("does not prove the goal is unreachable in the hidden world", limited)
+
     def test_ascii_demo(self):
         root = os.path.dirname(os.path.dirname(__file__))
         env = dict(os.environ, PYTHONPATH=os.path.join(root, "src"))

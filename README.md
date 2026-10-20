@@ -22,6 +22,7 @@ python3 -m venv .venv
 python -m pip install -e .
 python -m occlusion_lab demo
 python -m occlusion_lab demo --json
+python -m occlusion_lab demo --radius 3
 python -m unittest discover -s tests -v
 ```
 
@@ -30,12 +31,15 @@ Alternatively, without installing the package, run from the repository root with
 ```sh
 PYTHONPATH=src python -m occlusion_lab demo
 PYTHONPATH=src python -m occlusion_lab demo --json
+PYTHONPATH=src python -m occlusion_lab demo --radius 3
 PYTHONPATH=src python -m unittest discover -s tests -v
 ```
 
 The ordinary demo prints ground truth followed by the partial observed map, with `?` unknown cells, `#` occupied walls, `.` observed free cells, `S`/`G` endpoints, and `*` the route. Counts exclude markers. `--json` emits stable, sorted JSON without the ASCII display.
 
-Actual JSON metrics from the fixed fixture (formatted compactly here):
+Use `demo --radius N` to set the Manhattan observation radius (default `8`; `0` observes only the starting cell). Negative radii are rejected. A result marked unreachable means only that no path is available through currently observed free cells: unknown cells are blocked, so this is not proof that the hidden world has no route. The JSON metric `reachable_on_observed_free_cells` states this limited claim explicitly.
+
+Actual JSON metrics from the fixed fixture at the default radius of 8 (formatted compactly here; changing the radius changes these metrics):
 
 ```json
 {
