@@ -28,6 +28,7 @@ def main(argv=None):
     inspect.add_argument("id"); inspect.add_argument("--db", required=True)
     reject = sub.add_parser("reject"); reject.add_argument("id"); reject.add_argument("--reason", required=True); reject.add_argument("--db", required=True)
     export = sub.add_parser("export"); export.add_argument("id"); export.add_argument("--db", required=True)
+    export.add_argument("--checkpoint", type=Path, help="require a trusted checkpoint match in the same export snapshot")
     audit = sub.add_parser("audit"); audit.add_argument("--db", required=True)
     audit.add_argument("--checkpoint", type=Path, help="verify against a separately retained trusted checkpoint JSON file")
     checkpoint = sub.add_parser("checkpoint", help="print an audit witness; retain it separately from the database")
@@ -54,7 +55,8 @@ def main(argv=None):
             ReviewStore(args.db).reject(args.id, args.reason)
             print(json.dumps({"id": args.id, "status": "rejected"}))
         elif args.command == "export":
-            print(json.dumps(ReviewStore(args.db).export_approved(args.id), ensure_ascii=False))
+            options = {} if args.checkpoint is None else {"checkpoint": _read_checkpoint(args.checkpoint)}
+            print(json.dumps(ReviewStore(args.db).export_approved(args.id, **options), ensure_ascii=False))
         elif args.command == "checkpoint":
             print(json.dumps(ReviewStore(args.db).create_checkpoint(), sort_keys=True))
         elif args.command == "audit":

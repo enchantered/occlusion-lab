@@ -14,6 +14,7 @@ import uuid
 from pathlib import Path
 
 MAX_TEXT_BYTES = 100 * 1024
+_NO_CHECKPOINT = object()
 _PATTERNS = (
     ("api_key", re.compile(r"\b(?:sk-[A-Za-z0-9_-]{16,}|(?:api[_-]?key|secret)[=: ]+[A-Za-z0-9_./+-]{12,})\b", re.I)),
     ("bearer_token", re.compile(r"\bBearer\s+[A-Za-z0-9._~+/-]{12,}={0,2}", re.I)),
@@ -197,10 +198,21 @@ class ReviewStore:
             return {"id": row["id"], "draft": row["draft"], "hash": row["draft_hash"],
                     "status": row["status"], "reviewer": row["reviewer"], "reason": row["reason"]}
 
-    def export_approved(self, draft_id: str) -> dict:
+    def export_approved(self, draft_id: str, *, checkpoint=_NO_CHECKPOINT) -> dict:
+        """Export approved text, optionally bound to a trusted audit prefix.
+
+        Checkpoint and draft checks share one SQLite read snapshot. The caller
+        must protect the witness separately; this does not authenticate identity.
+        """
+        parts = None if checkpoint is _NO_CHECKPOINT else self._checkpoint_parts(checkpoint)
         with self._connect() as db:
             db.execute("BEGIN")
             self._require_integrity(db)
+            if parts is not None:
+                count, head = parts
+                witness_row = db.execute("SELECT event_hash FROM audit WHERE seq=?", (count,)).fetchone()
+                if witness_row is None or witness_row["event_hash"] != head:
+                    raise ReviewError("checkpoint does not match current audit history; export refused")
             row = db.execute("SELECT * FROM drafts WHERE id=?", (draft_id,)).fetchone()
             if row is None:
                 raise ReviewError("draft not found")
@@ -284,12 +296,8 @@ class ReviewStore:
         except sqlite3.Error as exc:
             raise ReviewError(f"cannot create checkpoint: {exc}") from exc
 
-    def verify_checkpoint(self, checkpoint) -> bool:
-        """Compare a caller-retained checkpoint to a verified local audit prefix.
-
-        The checkpoint is a trusted witness supplied by the caller, not loaded
-        from this database. Subsequent valid events after its sequence are allowed.
-        """
+    @staticmethod
+    def _checkpoint_parts(checkpoint):
         message = "invalid checkpoint"
         if not isinstance(checkpoint, dict) or set(checkpoint) != {"version", "event_count", "head_hash"}:
             raise ReviewError(f"{message}: expected exactly version, event_count, and head_hash")
@@ -300,6 +308,15 @@ class ReviewStore:
             raise ReviewError(f"{message}: event_count must be a positive signed 64-bit integer")
         if not isinstance(head, str) or re.fullmatch(r"[0-9a-f]{64}", head) is None:
             raise ReviewError(f"{message}: head_hash must be 64 lowercase hexadecimal characters")
+        return count, head
+
+    def verify_checkpoint(self, checkpoint) -> bool:
+        """Compare a caller-retained checkpoint to a verified local audit prefix.
+
+        The checkpoint is a trusted witness supplied by the caller, not loaded
+        from this database. Subsequent valid events after its sequence are allowed.
+        """
+        count, head = self._checkpoint_parts(checkpoint)
         try:
             with self._connect() as db:
                 db.execute("BEGIN")

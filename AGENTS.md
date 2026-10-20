@@ -2,6 +2,10 @@
 
 This repository belongs to the user. The Cue coordinator owns the daily schedule. Do not create another schedule, cron job, timer, resident polling loop, or scheduled GitHub Action.
 
+## Owner's October 20 portfolio update
+
+Maintain an append-only dated consumer-behavior history spanning AI apps and established workflows. Cite opened public community/forum, research, review and usage sources; separate repeated evidence from anecdotes and do not fabricate dates. Each run creates one small, runnable general-user portfolio project in a new private repository, with original code and synthetic fixtures. Portfolio experiments may precede paid validation; never equate that with an investible business. Review each registered active project (ReviewGate, Occlusion Lab, Return Window as of October 20) for substantive tested maintenance. Do not assume unrelated account repositories are active. Keep useful setup and code explanations current. Public publishing always requires explicit owner approval; private publishing within this task is authorized. No filler commits. Preserve historical research when conclusions change.
+
 ## Each daily run
 
 1. Read this file, the README, latest research decision, project backlog, git status, and recent commit history. Never overwrite unrelated or uncommitted user changes. Fetch before pushing and never force-push.

@@ -2,7 +2,7 @@
 
 Evidence-led daily MVP experiments, with tests and substantive incremental maintenance. The first experiment is **ReviewGate**, a local-first approval workflow for AI-assisted client briefs at small professional-services firms.
 
-GitHub account: `enchantered`. Private repository creation was denied by the connector's `CreateRepository` permission on October 18. The existing `enchantered/ProjectAdi` repository is public and empty; its connector-authenticated Git push again returned HTTP 403 on 2026-10-19. No code was published and no repository visibility was changed. This workspace is a local Git repository; do not treat it as published until a successful remote push is verified. The Cue coordinator owns the daily schedule. This project creates no recurring task or scheduled GitHub Action.
+GitHub account: `enchantered`. Historical connector failures on October 18–19 are recorded in the dated research. Access now permits private repository creation. `ProjectAdi` is public and contains an older baseline; no new work will be pushed there without explicit public-release approval. This project's private maintenance destination is the separate `portfolio/reviewgate` branch of `enchantered/occlusion-lab`, preserving its independent history without creating a second new daily repository. Verify the remote commit before treating changes as published. No visibility settings or schedules are changed by this project.
 
 ## Run the first experiment
 
@@ -45,7 +45,9 @@ python -m projects.reviewgate audit --db artifacts/review.sqlite --checkpoint /p
 
 Later valid events may be appended. A rollback before the checkpoint, a different history, or internal corruption fails verification. Exit status is 0 for a match, 1 for a validly formed witness that does not match, and 2 for an invalid/unreadable witness or command error. Checkpoint files are limited to 4 KB. Empty databases cannot issue a meaningful checkpoint.
 
-This is opt-in audit verification, not an automatic export gate, signature, timestamp service or external anchoring integration. It only adds evidence if the retained checkpoint itself is trusted and protected separately. Replacing both the database and witness defeats it, and changes after a successful audit need another check. It does not authenticate reviewer identity or encrypt data.
+To require the checkpoint during export, use `python -m projects.reviewgate export DRAFT_ID --db artifacts/review.sqlite --checkpoint /path/to/trusted-checkpoint.json`. Checkpoint verification and approved-text selection then share one SQLite read snapshot, avoiding the gap between a separate audit command and export. An explicit invalid/null checkpoint fails closed. Omitting the flag retains the ordinary internally verified export behavior.
+
+This is opt-in verification, not a signature, timestamp service or external anchoring integration. It only adds evidence if the retained checkpoint itself is trusted and protected separately. Replacing both the database and witness defeats it. It does not authenticate reviewer identity or encrypt data.
 
 ## Optional agent-generated drafts
 
@@ -74,7 +76,9 @@ Follow [AGENTS.md](AGENTS.md) on every coordinator-run execution. Research curre
 
 The [2026-10-19 review](research/2026-10-19-decision.md) now places invoice exceptions first for discovery (67/100 versus ReviewGate 64/100 and subscription detection 46/100), based on newer 2026 late-payment evidence. This subjective lead is not an investment verdict or build authorization. ReviewGate remains the only active prototype: today's increments add trusted-checkpoint audit verification and transaction-safety regressions rather than another unvalidated product. The October 18 storage hardening and real-SDK offline tests remain in place.
 
-The [project backlog](projects/reviewgate/BACKLOG.md) prioritizes identity, retention/encrypted backups, independently anchored audit evidence and real redaction evaluation before customer use. [Tooling notes](docs/AGENT_TOOLING.md) link the official SDK capabilities. CI defines core tests on Python 3.11, 3.12 and 3.13 plus an SDK compatibility job on push/PR only; remote CI has not run because publishing remains blocked. Local tests ran on Python 3.12.
+The [consumer-behavior history](docs/consumer-behavior-log.md) preserves the October 19 baseline and appends October 20 evidence, distinguishing survey patterns from forum anecdotes. The portfolio registry covers ReviewGate, Occlusion Lab and today's Return Window; unrelated old account repositories are not assumed active. Return Window is a general-user portfolio experiment, not a change to ReviewGate's paid-pilot validation gate.
+
+The [project backlog](projects/reviewgate/BACKLOG.md) prioritizes identity, retention/encrypted backups, independently anchored audit evidence and real redaction evaluation before customer use. [Tooling notes](docs/AGENT_TOOLING.md) link the official SDK capabilities. CI defines core tests on Python 3.11, 3.12 and 3.13 plus an SDK compatibility job on push/PR only. Local tests ran on Python 3.12; remote CI status must be checked separately after private publishing.
 
 ## Important limitations
 
